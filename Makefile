@@ -24,7 +24,7 @@ testconnection:
 	go test -v ./db/tests/main_test.go
 
 testoverall:
-	go test -v -cover -coverpkg=github.com/suryansh74/simplebank/db/sqlc ./db/tests
+	go test -v -cover -coverpkg=github.com/suryansh74/simplebank/db/sqlc -count=1 ./db/tests
 
 .PHONY:
-	postgres17 createdb dropdb migrateup migratedown sqlc
+	postgres17 createdb dropdb migrateup migratedown sqlc testconnection testoverall
