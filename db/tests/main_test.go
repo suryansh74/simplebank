@@ -10,10 +10,6 @@ import (
 	"github.com/suryansh74/simplebank/db/sqlc"
 )
 
-const (
-	dbSource = "postgresql://root:secret@192.168.29.20:5432/simple_bank?sslmode=disable"
-)
-
 var (
 	testQueries *sqlc.Queries
 	testDB      *pgxpool.Pool
@@ -21,6 +17,13 @@ var (
 
 func TestMain(m *testing.M) {
 	var err error
+
+	// Get database URL from environment variable, with fallback to local
+	dbSource := os.Getenv("DB_SOURCE")
+	if dbSource == "" {
+		dbSource = "postgresql://root:secret@192.168.29.20:5432/simple_bank?sslmode=disable"
+	}
+
 	testDB, err = pgxpool.New(context.Background(), dbSource)
 	if err != nil {
 		log.Fatal("unable to connect database:", err)
