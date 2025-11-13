@@ -1,4 +1,4 @@
-DB_URL=postgresql://root:secret@192.168.29.20:5432/simple_bank?sslmode=disable
+DB_URL ?= postgresql://root:secret@192.168.29.20:5432/simple_bank?sslmode=disable
 
 postgres17:
 	fuser -k 5432/tcp 2>/dev/null || true && docker run --name postgres17 -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:17-alpine
@@ -28,5 +28,4 @@ testconnection:
 testoverall:
 	go test -v -cover -coverpkg=github.com/suryansh74/simplebank/db/sqlc -count=1 ./db/tests
 
-.PHONY:
-	postgres17 createdb dropdb migrateup migratedown sqlc testconnection testoverall
+.PHONY: postgres17 createdb dropdb migrateup migratedown sqlc testconnection testoverall psqldrop
