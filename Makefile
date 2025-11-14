@@ -19,6 +19,9 @@ migrateup:
 migratedown:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
+truncate:
+	docker exec -i postgres17 psql -U root -d simple_bank -c "TRUNCATE entries, transfers, accounts RESTART IDENTITY CASCADE;"
+
 sqlc:
 	sqlc generate
 
@@ -28,4 +31,7 @@ testconnection:
 testoverall:
 	go test -v -cover -coverpkg=github.com/suryansh74/simplebank/db/sqlc -count=1 ./db/tests
 
-.PHONY: postgres17 createdb dropdb migrateup migratedown sqlc testconnection testoverall psqldrop
+server:
+	fuser -k 8000/tcp 2>/dev/null || true && go run .                                                                                                                                        ─╯
+
+.PHONY: postgres17 createdb dropdb migrateup migratedown sqlc testconnection testoverall psqldrop server
