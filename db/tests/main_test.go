@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/suryansh74/simplebank/db/sqlc"
+	"github.com/suryansh74/simplebank/utils"
 )
 
 var (
@@ -16,15 +17,10 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	var err error
+	config, err := utils.LoadConfig("../../")
 
 	// Get database URL from environment variable, with fallback to local
-	dbSource := os.Getenv("DB_SOURCE")
-	if dbSource == "" {
-		dbSource = "postgresql://root:secret@192.168.29.20:5432/simple_bank?sslmode=disable"
-	}
-
-	testDB, err = pgxpool.New(context.Background(), dbSource)
+	testDB, err = pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("unable to connect database:", err)
 	}
