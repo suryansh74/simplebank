@@ -1,0 +1,24 @@
+mode: set
+github.com/suryansh74/simplebank/api/account.go:17.59,21.16 3 1
+github.com/suryansh74/simplebank/api/account.go:21.16,24.3 2 1
+github.com/suryansh74/simplebank/api/account.go:26.2,33.16 3 1
+github.com/suryansh74/simplebank/api/account.go:33.16,36.3 2 1
+github.com/suryansh74/simplebank/api/account.go:38.2,38.43 1 1
+github.com/suryansh74/simplebank/api/account.go:45.56,48.16 3 1
+github.com/suryansh74/simplebank/api/account.go:48.16,51.3 2 1
+github.com/suryansh74/simplebank/api/account.go:53.2,54.16 2 1
+github.com/suryansh74/simplebank/api/account.go:54.16,55.27 1 1
+github.com/suryansh74/simplebank/api/account.go:55.27,58.4 2 1
+github.com/suryansh74/simplebank/api/account.go:59.3,60.9 2 1
+github.com/suryansh74/simplebank/api/account.go:63.2,63.38 1 1
+github.com/suryansh74/simplebank/api/account.go:71.57,74.16 3 1
+github.com/suryansh74/simplebank/api/account.go:74.16,77.3 2 1
+github.com/suryansh74/simplebank/api/account.go:79.2,85.16 3 1
+github.com/suryansh74/simplebank/api/account.go:85.16,88.3 2 1
+github.com/suryansh74/simplebank/api/account.go:90.2,90.39 1 1
+github.com/suryansh74/simplebank/api/server.go:16.40,30.2 9 1
+github.com/suryansh74/simplebank/api/server.go:32.51,34.2 1 1
+github.com/suryansh74/simplebank/api/server.go:36.84,42.12 2 1
+github.com/suryansh74/simplebank/api/server.go:42.12,45.3 2 1
+github.com/suryansh74/simplebank/api/server.go:47.2,47.29 1 1
+github.com/suryansh74/simplebank/api/server.go:50.37,54.2 1 1

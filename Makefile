@@ -31,7 +31,13 @@ testconnection:
 testoverall:
 	go test -v -cover -coverpkg=github.com/suryansh74/simplebank/db/sqlc -count=1 ./db/tests
 
+testapi:
+	go test -v -coverprofile=coverage.out ./api
+
 server:
 	fuser -k 8000/tcp 2>/dev/null || true && go run .                                                                                                                                        ─╯
 
-.PHONY: postgres17 createdb dropdb migrateup migratedown sqlc testconnection testoverall psqldrop server
+mock:
+	mockgen -source=db/store.go -destination=db/mock/store.go -package=mock Store
+
+.PHONY: postgres17 createdb dropdb migrateup migratedown sqlc testconnection testoverall psqldrop server mock
