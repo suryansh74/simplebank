@@ -86,7 +86,7 @@ func TestGetAccountAPI(t *testing.T) {
 
 			store := mock.NewMockStore(ctrl)
 			tc.buildStubs(store)
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 			url := fmt.Sprintf("/accounts/%d", tc.accountID)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -195,7 +195,7 @@ func TestListAccountAPI(t *testing.T) {
 			store := mock.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/accounts?page_id=%d&page_size=%d", tc.query.pageID, tc.query.pageSize)
@@ -348,7 +348,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			store := mock.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			// Marshal body data to JSON

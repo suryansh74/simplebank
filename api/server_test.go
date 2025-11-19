@@ -16,7 +16,7 @@ func TestServerStart(t *testing.T) {
 	defer ctrl.Finish()
 
 	store := mock.NewMockStore(ctrl)
-	server := NewServer(store)
+	server := newTestServer(t, store)
 
 	// Create a context with cancel
 	ctx, cancel := context.WithCancel(context.Background())
@@ -47,7 +47,7 @@ func TestServerStartWithoutShutdown(t *testing.T) {
 	defer ctrl.Finish()
 
 	store := mock.NewMockStore(ctrl)
-	server := NewServer(store)
+	server := newTestServer(t, store)
 
 	// Channel to capture any error
 	errChan := make(chan error, 1)
