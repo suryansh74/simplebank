@@ -30,9 +30,17 @@ func NewServer(config utils.Config, store db.Store) (*Server, error) {
 		tokenMaker: tokenMaker,
 	}
 
-	router := gin.New()
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
+	server.setupRoutes()
+
+	return server, nil
+}
+
+func (server *Server) Start(address string) error {
+	return server.router.Run(address)
+}
+
+func (server *Server) setupRoutes() {
+	router := gin.Default()
 
 	// accounts
 	router.POST("/accounts", server.createAccount)
@@ -44,12 +52,9 @@ func NewServer(config utils.Config, store db.Store) (*Server, error) {
 
 	// users
 	router.POST("/users", server.createUser)
-	server.router = router
-	return server, nil
-}
+	router.POST("/users/login", server.loginUser)
 
-func (server *Server) Start(address string) error {
-	return server.router.Run(address)
+	server.router = router
 }
 
 func (server *Server) StartWithShutdown(ctx context.Context, address string) error {
