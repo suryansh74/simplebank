@@ -2,12 +2,14 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/suryansh74/simplebank/db"
 	"github.com/suryansh74/simplebank/db/sqlc"
+	"github.com/suryansh74/simplebank/token"
 )
 
 type transferRequest struct {
@@ -26,12 +28,21 @@ func (server *Server) createTransfer(context *gin.Context) {
 		return
 	}
 
+	fromAccount, valid := server.validAccount(context, req.FromAccountID, req.Currency)
 	// TODO: currency should be same From and To account
-	if !server.validAccount(context, req.FromAccountID, req.Currency) {
+	if !valid {
 		return
 	}
 
-	if !server.validAccount(context, req.ToAccountID, req.Currency) {
+	authPayload := context.MustGet(authroizatoinPayloadKey).(*token.Payload)
+	if fromAccount.Owner != authPayload.Username {
+		err := errors.New("from account doesn't belong to the authenticated user")
+		context.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	_, valid = server.validAccount(context, req.ToAccountID, req.Currency)
+	if !valid {
 		return
 	}
 
@@ -50,22 +61,22 @@ func (server *Server) createTransfer(context *gin.Context) {
 	context.JSON(http.StatusCreated, transfer)
 }
 
-func (server *Server) validAccount(context *gin.Context, accountID int64, currency sqlc.Currency) bool {
+func (server *Server) validAccount(context *gin.Context, accountID int64, currency sqlc.Currency) (sqlc.Account, bool) {
 	// check wheater account is exist or not by id
 	account, err := server.store.GetAccount(context, accountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			context.JSON(http.StatusNotFound, errorResponse(err))
-			return false
+			return account, false
 		}
 		context.JSON(http.StatusInternalServerError, errorResponse(err))
-		return false
+		return account, false
 	}
 	// check currency is same as given
 	if account.Currency != currency {
 		err := fmt.Errorf("account [%d] currency mismatch: %s vs %s", accountID, account.Currency, currency)
 		context.JSON(http.StatusBadRequest, errorResponse(err))
-		return false
+		return account, false
 	}
-	return true
+	return account, true
 }
