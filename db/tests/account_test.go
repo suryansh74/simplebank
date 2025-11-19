@@ -13,8 +13,9 @@ import (
 
 // createRandomAccount is does not have 'Test' prefix hence it don't count as unit test
 func createRandomAccount(t *testing.T) sqlc.Account {
+	user := createRandomUser(t)
 	arg := sqlc.CreateAccountParams{
-		Owner:    utils.RandomOwner(),
+		Owner:    user.Username,
 		Balance:  utils.RandomMoney(),
 		Currency: utils.RandomCurrency(),
 	}
@@ -88,7 +89,7 @@ func TestDeleteAccount(t *testing.T) {
 }
 
 func TestListAccounts(t *testing.T) {
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		createRandomAccount(t)
 	}
 

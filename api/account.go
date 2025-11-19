@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/suryansh74/simplebank/db/sqlc"
 )
 
@@ -31,6 +32,16 @@ func (server *Server) createAccount(context *gin.Context) {
 
 	account, err := server.store.CreateAccount(context, args)
 	if err != nil {
+		if pqErr, ok := err.(*pgconn.PgError); ok {
+			switch pqErr.Code {
+			case "23503": // foreign_key_violation
+				context.JSON(http.StatusForbidden, errorResponse(err))
+				return
+			case "23505": // unique_violation
+				context.JSON(http.StatusForbidden, errorResponse(err))
+				return
+			}
+		}
 		context.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}

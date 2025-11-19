@@ -10,21 +10,44 @@ psqldrop:
 createdb:
 	docker exec -it postgres17 createdb --username=root --owner=root simple_bank
 
-dropdb:
+# New target: Kill all connections to simple_bank
+killconnections:
+	docker exec -i postgres17 psql -U root -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'simple_bank' AND pid <> pg_backend_pid();"
+
+# Updated dropdb: kill connections first, then drop
+dropdb: killconnections
 	docker exec -it postgres17 dropdb simple_bank
 
+# Alternative: Drop with force (PostgreSQL 13+)
+dropdbforce:
+	docker exec -i postgres17 psql -U root -d postgres -c "DROP DATABASE simple_bank WITH (FORCE);"
+
+# MIGRATION
+# ********************************************************************************
 migrateup:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up
+
+migrateup1:
+	migrate -path db/migration -database "$(DB_URL)" -verbose up 1
 
 migratedown:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
+migratedown1:
+	migrate -path db/migration -database "$(DB_URL)" -verbose down 1
+
+migratefresh: migratedown migrateup
+	@echo "Fresh migration complete"
+
 truncate:
 	docker exec -i postgres17 psql -U root -d simple_bank -c "TRUNCATE entries, transfers, accounts RESTART IDENTITY CASCADE;"
+# ********************************************************************************
 
 sqlc:
 	sqlc generate
 
+# MIGRATION
+# ********************************************************************************
 testconnection:
 	go test -v ./db/tests/main_test.go
 
@@ -34,10 +57,14 @@ testoverall:
 testapi:
 	go test -v -coverprofile=coverage.out ./api
 
+testutil:
+	go test -v -cover ./api
+# ********************************************************************************
+
 server:
-	fuser -k 8000/tcp 2>/dev/null || true && go run .                                                                                                                                        ─╯
+	fuser -k 8000/tcp 2>/dev/null || true && go run .
 
 mock:
 	mockgen -source=db/store.go -destination=db/mock/store.go -package=mock Store
 
-.PHONY: postgres17 createdb dropdb migrateup migratedown sqlc testconnection testoverall psqldrop server mock
+.PHONY: postgres17 createdb dropdb dropdbforce killconnections migrateup migratedown sqlc testconnection testoverall psqldrop server mock

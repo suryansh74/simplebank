@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/require"
 	"github.com/suryansh74/simplebank/db/mock"
 	"github.com/suryansh74/simplebank/db/sqlc"
@@ -28,7 +29,7 @@ func TestGetAccountAPI(t *testing.T) {
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
-			name:      "ok",
+			name:      "OK",
 			accountID: account.ID,
 			buildStubs: func(store *mock.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).
@@ -40,7 +41,6 @@ func TestGetAccountAPI(t *testing.T) {
 				requireBodyMatchAccount(t, recorder.Body, account)
 			},
 		},
-		// add more test cases
 		{
 			name:      "NotFound",
 			accountID: account.ID,
@@ -61,7 +61,6 @@ func TestGetAccountAPI(t *testing.T) {
 					Times(1).
 					Return(sqlc.Account{}, sql.ErrConnDone)
 			},
-
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
@@ -73,7 +72,6 @@ func TestGetAccountAPI(t *testing.T) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
-
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
@@ -97,28 +95,6 @@ func TestGetAccountAPI(t *testing.T) {
 			tc.checkResponse(t, recorder)
 		})
 	}
-}
-
-func randomAccount() sqlc.Account {
-	return sqlc.Account{
-		ID:       utils.RandomInt(1, 1000),
-		Owner:    utils.RandomOwner(),
-		Balance:  utils.RandomMoney(),
-		Currency: utils.RandomCurrency(),
-	}
-}
-
-func requireBodyMatchAccount(t *testing.T, body *bytes.Buffer, account sqlc.Account) {
-	data, err := io.ReadAll(body)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	var gotAccount sqlc.Account
-	err = json.Unmarshal(data, &gotAccount)
-	require.NoError(t, err)
-	require.Equal(t, account, gotAccount)
 }
 
 func TestListAccountAPI(t *testing.T) {
@@ -232,16 +208,6 @@ func TestListAccountAPI(t *testing.T) {
 	}
 }
 
-func requireBodyMatchAccounts(t *testing.T, body *bytes.Buffer, accounts []sqlc.Account) {
-	data, err := io.ReadAll(body)
-	require.NoError(t, err)
-
-	var gotAccounts []sqlc.Account
-	err = json.Unmarshal(data, &gotAccounts)
-	require.NoError(t, err)
-	require.Equal(t, accounts, gotAccounts)
-}
-
 func TestCreateAccountAPI(t *testing.T) {
 	account := randomAccount()
 
@@ -332,6 +298,44 @@ func TestCreateAccountAPI(t *testing.T) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
+		{
+			name: "ForeignKeyViolation",
+			body: gin.H{
+				"owner":    "nonexistent_user",
+				"currency": account.Currency,
+			},
+			buildStubs: func(store *mock.MockStore) {
+				store.EXPECT().
+					CreateAccount(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(sqlc.Account{}, &pgconn.PgError{
+						Code:    "23503",
+						Message: "insert or update on table violates foreign key constraint",
+					})
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusForbidden, recorder.Code)
+			},
+		},
+		{
+			name: "DuplicateAccount",
+			body: gin.H{
+				"owner":    account.Owner,
+				"currency": account.Currency,
+			},
+			buildStubs: func(store *mock.MockStore) {
+				store.EXPECT().
+					CreateAccount(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(sqlc.Account{}, &pgconn.PgError{
+						Code:    "23505",
+						Message: "duplicate key value violates unique constraint",
+					})
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusForbidden, recorder.Code)
+			},
+		},
 	}
 
 	for i := range testCases {
@@ -359,4 +363,34 @@ func TestCreateAccountAPI(t *testing.T) {
 			tc.checkResponse(t, recorder)
 		})
 	}
+}
+
+// Helper functions
+func randomAccount() sqlc.Account {
+	return sqlc.Account{
+		ID:       utils.RandomInt(1, 1000),
+		Owner:    utils.RandomOwner(),
+		Balance:  utils.RandomMoney(),
+		Currency: utils.RandomCurrency(),
+	}
+}
+
+func requireBodyMatchAccount(t *testing.T, body *bytes.Buffer, account sqlc.Account) {
+	data, err := io.ReadAll(body)
+	require.NoError(t, err)
+
+	var gotAccount sqlc.Account
+	err = json.Unmarshal(data, &gotAccount)
+	require.NoError(t, err)
+	require.Equal(t, account, gotAccount)
+}
+
+func requireBodyMatchAccounts(t *testing.T, body *bytes.Buffer, accounts []sqlc.Account) {
+	data, err := io.ReadAll(body)
+	require.NoError(t, err)
+
+	var gotAccounts []sqlc.Account
+	err = json.Unmarshal(data, &gotAccounts)
+	require.NoError(t, err)
+	require.Equal(t, accounts, gotAccounts)
 }
