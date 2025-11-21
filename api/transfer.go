@@ -34,7 +34,7 @@ func (server *Server) createTransfer(context *gin.Context) {
 		return
 	}
 
-	authPayload := context.MustGet(authroizatoinPayloadKey).(*token.Payload)
+	authPayload := context.MustGet(authorizationPayloadKey).(*token.Payload)
 	if fromAccount.Owner != authPayload.Username {
 		err := errors.New("from account doesn't belong to the authenticated user")
 		context.JSON(http.StatusUnauthorized, errorResponse(err))

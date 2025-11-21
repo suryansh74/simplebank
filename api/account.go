@@ -25,7 +25,7 @@ func (server *Server) createAccount(context *gin.Context) {
 		return
 	}
 
-	authPayload := context.MustGet(authroizatoinPayloadKey).(*token.Payload)
+	authPayload := context.MustGet(authorizationPayloadKey).(*token.Payload)
 	args := sqlc.CreateAccountParams{
 		Owner:    authPayload.Username,
 		Currency: req.Currency,
@@ -73,7 +73,7 @@ func (server *Server) getAccount(context *gin.Context) {
 		return
 	}
 
-	authPayload := context.MustGet(authroizatoinPayloadKey).(*token.Payload)
+	authPayload := context.MustGet(authorizationPayloadKey).(*token.Payload)
 	if account.Owner != authPayload.Username {
 		err := errors.New("account doesn't belong to authenticated user")
 		context.JSON(http.StatusUnauthorized, errorResponse(err))
@@ -96,7 +96,7 @@ func (server *Server) listAccount(context *gin.Context) {
 		return
 	}
 
-	authPayload := context.MustGet(authroizatoinPayloadKey).(*token.Payload)
+	authPayload := context.MustGet(authorizationPayloadKey).(*token.Payload)
 	args := sqlc.ListAccountsParams{
 		Owner:  authPayload.Username,
 		Limit:  req.PageSize,

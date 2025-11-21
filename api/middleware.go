@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	authorizationHeaderKey  = "authroizatoin"
-	authroizatoinTypeBearer = "bearer"
-	authroizatoinPayloadKey = "authorization_payload"
+	authorizationHeaderKey  = "authorization"         // ← Fixed spelling
+	authorizationTypeBearer = "bearer"                // ← Also fix this variable name
+	authorizationPayloadKey = "authorization_payload" // ← And this one
 )
 
 func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
@@ -33,7 +33,7 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 		}
 
 		authroizatoinType := strings.ToLower(fields[0])
-		if authroizatoinType != authroizatoinTypeBearer {
+		if authroizatoinType != authorizationTypeBearer {
 			err := fmt.Errorf("unsupported authroizatoin type %s", authorizationHeader)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
@@ -45,7 +45,7 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
-		ctx.Set(authroizatoinPayloadKey, payload)
+		ctx.Set(authorizationPayloadKey, payload)
 		ctx.Next()
 	}
 }
