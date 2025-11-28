@@ -90,8 +90,8 @@ func TestDeleteAccount(t *testing.T) {
 
 func TestListAccounts(t *testing.T) {
 	var lastAccount sqlc.Account
-	for range 10 {
-		createRandomAccount(t)
+	for i := 0; i < 10; i++ {
+		lastAccount = createRandomAccount(t)
 	}
 
 	args := sqlc.ListAccountsParams{
